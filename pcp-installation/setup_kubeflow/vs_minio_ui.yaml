@@ -1,0 +1,39 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: minio-ui
+  namespace: kubeflow
+spec:
+  gateways:
+  - kubeflow-gateway
+  hosts:
+  - '*'
+  http:
+  - headers:
+      request:
+        add:
+          x-forwarded-prefix: /minio
+    match:
+    - uri:
+        prefix: /minio/
+    rewrite:
+      uri: /minio/
+    route:
+    - destination:
+        host: minio-service.kubeflow.svc.cluster.local
+        port:
+          number: 9000
+    timeout: 300s
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: minio-ui
+  namespace: kubeflow
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  action: ALLOW
+  rules:
+  - {}
